@@ -54,8 +54,7 @@ function wl_post( $slug ) {
 	return $data;
 }
 
-
-// Used in this video https://www.youtube.com/watch?v=76sJL9fd12Y
+// Used in this video https://www.youtube.com/watch?v=76sJL9fd12Y :)13
 function wl_product() {
 	$args = [
 		'numberposts' => 99999,
