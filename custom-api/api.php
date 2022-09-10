@@ -54,13 +54,13 @@ function wl_post( $slug ) {
 	return $data;
 }
 
-// Used in this video https://www.youtube.com/watch?v=76sJL9fd12Y :)13
+
+// Used in this video https://www.youtube.com/watch?v=76sJL9fd12Y
 function wl_product() {
 	$args = [
 		'numberposts' => 99999,
 		'post_type' => 'product'
 	];
-
 	$posts = get_posts($args);
 
 	$data = [];
@@ -68,14 +68,105 @@ function wl_product() {
 
 	foreach($posts as $post) {
 		$data[$i]['id'] = $post->ID;
-		$data[$i]['title'] = $post->post_title;
+		$data[$i]['title'] = $post->title;
         $data[$i]['slug'] = $post->post_name;
-        $data[$i]['price'] = $post->price;
-        $data[$i]['vazn'] = $post->vazn;
-        $data[$i]['jens'] = $post->jens;
-        $data[$i]['gallery'] = wp_get_attachment_image_src( $post->gallery, 'original' );
+        $data[$i]['_description'] = $post->_description;
+		if(!empty(explode( ',',$post->image)[0]))
+			$data['image1'] = wp_get_attachment_image_src( explode( ',',$post->image)[0], 'original' );
+		if(!empty(explode( ',',$post->image)[1]))
+			$data['image2'] = wp_get_attachment_image_src( explode( ',',$post->image)[1], 'original' );
         
-        $data[$i]['format'] = $post->format;
+        // $data[$i]['price'] = get_field('price', $post->ID);
+		$i++;
+	}
+
+	return $data;
+}
+
+function wl_archive($slug) {
+	$posts=json_decode(file_get_contents('http://localhost/afam-wp/wp-json/wp/v2/product?product_cat='.$slug['slug']));
+			
+	$data = [];
+	$i = 0;
+
+	foreach($posts as $post) {
+		
+		$post = get_post($post->id);
+
+		$data[$i]['id'] = $post->ID;
+		$data[$i]['title'] = $post->title;
+        $data[$i]['slug'] = $post->post_name;
+        $data[$i]['_description'] = $post->_description;
+		if(!empty(explode( ',',$post->image)[0]))
+        	$data[$i]['image1'] = wp_get_attachment_image_src( explode( ',',$post->image)[0], 'original' );
+		if(!empty(explode( ',',$post->image)[1]))
+        	$data[$i]['image2'] = wp_get_attachment_image_src( explode( ',',$post->image)[1], 'original' );
+
+		$i++;
+	}
+
+	return $data;
+}
+// Used in this video https://www.youtube.com/watch?v=76sJL9fd12Y
+function wl_single_product($slug) {
+	$args = [
+		'ID' => $slug['slug'],
+		'post_type' => 'product'
+	];
+	$post = get_post($slug['slug']);
+
+	$data = [];
+		$data['id'] = $post->ID;
+		$data['title'] = $post->title;
+        $data['slug'] = $post->post_name;
+        $data['_description'] = $post->_description;
+		if(!empty(explode( ',',$post->image)[0]))
+        	$data['image1'] = wp_get_attachment_image_src( explode( ',',$post->image)[0], 'original' );
+		if(!empty(explode( ',',$post->image)[1]))
+        	$data['image2'] = wp_get_attachment_image_src( explode( ',',$post->image)[1], 'original' );
+        
+	return $data;
+}
+
+// taxonomy
+function wl_product_cats() {
+	$args = [
+		'taxonomy' => 'product_cat',
+		'hide_empty' => false,
+	];
+	$posts = get_terms($args);
+
+	$data = [];
+	$i = 0;
+
+	foreach($posts as $post) {
+		// print_r($post);
+		$data[$i]['id'] = $post->term_id;
+		$data[$i]['name'] = $post->name;
+
+        
+        // $data[$i]['price'] = get_field('price', $post->ID);
+		$i++;
+	}
+
+	return $data;
+}
+function wl_product_cat($slug) {
+	$args = [
+		'name' => $slug['slug'],
+		'taxonomy' => 'product_cat',
+	];
+	$posts = get_terms($args);
+
+	$data = [];
+	$i = 0;
+
+	foreach($posts as $post) {
+		// print_r($post);
+		$data[$i]['id'] = $post->term_id;
+		$data[$i]['name'] = $post->name;
+
+        
         // $data[$i]['price'] = get_field('price', $post->ID);
 		$i++;
 	}
@@ -94,9 +185,29 @@ add_action('rest_api_init', function() {
 		'callback' => 'wl_post',
     ) );
     
-    // Used in this video: https://www.youtube.com/watch?v=76sJL9fd12Y	
+    // product
     register_rest_route('wl/v1', 'product', [
 		'methods' => 'GET',
 		'callback' => 'wl_product',
+	]);
+    
+    register_rest_route('wl/v1', 'product/(?P<slug>[a-zA-Z0-9-]+)', [
+		'methods' => 'GET',
+		'callback' => 'wl_single_product',
+	]);
+
+    // category (taxonomy)
+    register_rest_route('wl/v1', 'product_cat', [
+		'methods' => 'GET',
+		'callback' => 'wl_product_cats',
+	]);
+    register_rest_route('wl/v1', 'product_cat/(?P<slug>[a-zA-Z0-9-]+)', [
+		'methods' => 'GET',
+		'callback' => 'wl_product_cat',
+	]);
+	// archive
+    register_rest_route('wl/v1', 'archive/(?P<slug>[a-zA-Z0-9-]+)', [
+		'methods' => 'GET',
+		'callback' => 'wl_archive',
 	]);
 });
