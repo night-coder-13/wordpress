@@ -72,9 +72,9 @@ function wl_product() {
         $data[$i]['slug'] = $post->post_name;
         $data[$i]['_description'] = $post->_description;
 		if(!empty(explode( ',',$post->image)[0]))
-			$data['image1'] = wp_get_attachment_image_src( explode( ',',$post->image)[0], 'original' );
+			$data[$i]['image1'] = wp_get_attachment_image_src( explode( ',',$post->image)[0], 'original' );
 		if(!empty(explode( ',',$post->image)[1]))
-			$data['image2'] = wp_get_attachment_image_src( explode( ',',$post->image)[1], 'original' );
+			$data[$i]['image2'] = wp_get_attachment_image_src( explode( ',',$post->image)[1], 'original' );
         
         // $data[$i]['price'] = get_field('price', $post->ID);
 		$i++;
@@ -143,6 +143,9 @@ function wl_product_cats() {
 		// print_r($post);
 		$data[$i]['id'] = $post->term_id;
 		$data[$i]['name'] = $post->name;
+		$thumbnail = get_term_meta($post->term_id)['thumbnail'];
+		if(!empty($thumbnail[0]))
+        	$data[$i]['img'] = wp_get_attachment_image_src( $thumbnail[0], 'original' );
 
         
         // $data[$i]['price'] = get_field('price', $post->ID);
@@ -153,8 +156,9 @@ function wl_product_cats() {
 }
 function wl_product_cat($slug) {
 	$args = [
-		'name' => $slug['slug'],
+		'term_taxonomy_id' => $slug['slug'],
 		'taxonomy' => 'product_cat',
+		'hide_empty' => false,
 	];
 	$posts = get_terms($args);
 
@@ -163,11 +167,16 @@ function wl_product_cat($slug) {
 
 	foreach($posts as $post) {
 		// print_r($post);
-		$data[$i]['id'] = $post->term_id;
-		$data[$i]['name'] = $post->name;
+		$data['id'] = $post->term_id;
+		$data['name'] = $post->name;
+		$data['description'] = $post->description;
+		$thumbnail = get_term_meta($post->term_id)['thumbnail'];
+		$thumbnail = explode( ',',$thumbnail[0]);
+		if(!empty($thumbnail[0]))
+        	$data['img'] = wp_get_attachment_image_src( $thumbnail[0], 'original' );
+		if(!empty($thumbnail[1]))
+        	$data['img_bg'] = wp_get_attachment_image_src( $thumbnail[1], 'original' );
 
-        
-        // $data[$i]['price'] = get_field('price', $post->ID);
 		$i++;
 	}
 
