@@ -14,7 +14,7 @@ $Product_type = get_terms($args);
 
 ?>
 
-	<form action="" method="post" id="product-form">
+	<form action="#" method="post" id="product-form">
 		<label for="">Product Type:
 			<select name="product_type" id="product-category">
 				<option data-slug=""value=""></option>
@@ -28,55 +28,21 @@ $Product_type = get_terms($args);
 			</select>
 		</label>
 		<br>
-    	<input type="file" name="img">
+    	<input type="file" name="img[]" multiple>
 		<br>
 		<b>OR</b>
 		<br>
-		<input type="text" placeholder="path dirctory">
+		<input type="text" name="dir" placeholder="path dirctory">
 		<br>
 		<button name="submit" type="submit">Submit</button>
 	</form>
 
 <?php
 
-$args = [
-	    'numberposts' => 99999,
-	    'post_type' => 'product'
-	];
-	$posts = get_posts($args);
-	function show($p,$name){
-		echo '<b>'.$name.' *************</b><br>';
-	    echo $p->$name;
-	    echo '<br>';
-		echo '<b>'.$name.' *************</b><br>';
-	}
+function AddPost($image_url , $post_title){
 	
-	// foreach($posts as $p){
-	//     show($p,'ID');
-	//     show($p,'post_title');
-	//     show($p,'image');
-	//     show($p,'thumbnail');
-	// 	echo '<br><br>';
-	// }
-	// print_r($posts);
-
-// print_r(wp_upload_dir()['url']);
-// print_r(basename( 'http://localhost/change-name/onyx_2/o_23319.jpg' ));
-
-//print_r(image_type_to_mime_type(exif_imagetype('http://localhost/change-name/onyx_2/o_23319.jpg')));
-
-if(isset($_POST['submit'])){
-	//reade directory and get images 
-
-// 	$filename should be the path to a file in the upload directory.
-	$image_url = 'http://localhost/change-name/onyx_2/o_23319.jpg';
-	$filename = 'o_23319.jpg';
-	// $filename = 'http://localhost/afam-wp/wp-content/uploads/2023/01/file.jpg';
-
 	// Get the path to the upload directory.
 	$wp_upload_dir = wp_upload_dir();
-
-	require_once( ABSPATH . 'wp-admin/includes/file.php' );
 
 	// download to temp dir
 	$temp_file = download_url( $image_url );
@@ -85,7 +51,7 @@ if(isset($_POST['submit'])){
 		return false;
 	}
 
-		// move the temp file into the uploads directory
+	// move the temp file into the uploads directory
 	$file = array(
 		'name'     => basename( $image_url ),
 		'type'     => mime_content_type( $temp_file ),
@@ -117,8 +83,6 @@ if(isset($_POST['submit'])){
 
 	// Insert the post into the database
 	$parent_post_id =wp_insert_post( $my_post );
-
-
 	// The ID of the post this attachment is for.
 	// $parent_post_id = 0;
 
@@ -130,7 +94,7 @@ if(isset($_POST['submit'])){
 		'post_content'   => '',
 		'post_status'    => 'inherit'
 	);
-	
+
 	// Insert the attachment.
 	$attach_id = wp_insert_attachment( $attachment, $wp_upload_dir['url'] . '/' . basename( $image_url ), $parent_post_id );
 
@@ -148,23 +112,35 @@ if(isset($_POST['submit'])){
 		'term_taxonomy_id' =>  4,
 		'term_order' =>  0
 	);
-			 
+			
 	$formats_values = array( '%s', '%d' );
 
 	$wpdb->insert( 'wp_term_relationships' , $wp_term_relationships, $formats_values );
-  
-
-	// Update post 37
-// 	$my_post = array(
-// 		'ID'           => $parent_post_id,
-// 		'iamge'   => $attach_id,
-// 	);
-  
-//   // Update the post into the database
-// 	wp_update_post( $my_post );
 
 }
-;
+
+if(isset($_POST['submit'])){
+	require_once( ABSPATH . 'wp-admin/includes/file.php' );
+
+	$image_string = str_replace('&','|',str_replace('%5B%5D','', file_get_contents('php://input')));
+	$image_array = explode('|', $image_string);
+	$images=[];
+	$i=0;
+	$dirction='';
+	foreach($image_array as $item){
+		if(strstr($item , 'dir')){
+			$dirction=str_replace('dir=','',strstr( $item ,'dir'));
+		}
+	}
+	foreach($image_array as $item){
+		if(strstr($item , 'img')){
+			$images[$i]=urldecode('http://localhost/change-name/' . $dirction .'/'. str_replace('img=','',$item));
+			// AddPost($images[$i]);
+			$i++;
+		}
+	}
+
+}
 
 ?>
 
