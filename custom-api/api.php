@@ -84,14 +84,19 @@ function wl_product() {
 }
 
 function wl_archive($slug) {
-	$posts=json_decode(file_get_contents('http://localhost/afam-wp/wp-json/wp/v2/product?product_cat='.$slug['slug']));
+	global $wpdb;      
+	$sql = "SELECT * FROM `wp_term_relationships` WHERE `term_taxonomy_id`=".$slug['slug'];
+	$posts = $wpdb->get_results($sql);
+	
+	// A relatively unsuccessful method
+	//$posts=json_decode(file_get_contents('http://localhost/afam-wp/wp-json/wp/v2/product?product_cat='.$slug['slug']));
 			
 	$data = [];
 	$i = 0;
 
 	foreach($posts as $post) {
 		
-		$post = get_post($post->id);
+		$post = get_post($post->object_id);
 
 		$data[$i]['id'] = $post->ID;
 		$data[$i]['title'] = $post->title;
