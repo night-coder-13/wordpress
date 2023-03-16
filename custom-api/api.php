@@ -109,7 +109,6 @@ function wl_post( $slug ) {
 
 	$post = get_posts($args);
 
-
 	$data['id'] = $post[0]->ID;
 	$data['title'] = $post[0]->post_title;
 	$data['content'] = $post[0]->post_content;
@@ -188,9 +187,9 @@ function wl_single_product($slug) {
 	$data = [];
 		$data['id'] = $post->ID;
 		$data['title'] = empty($post->title) ? $post->post_title : $post->title;
-        $data['slug'] = $post->post_name;
-        $data['_description'] = $post->_description;
-        $data['hashtag'] = $post->hashtag;
+        	$data['slug'] = $post->post_name;
+        	$data['_description'] = $post->_description;
+        	$data['hashtag'] = $post->hashtag;
 		if(!empty(explode( ',',$post->image)[0]))
         	$data['image1'] = wp_get_attachment_image_src( explode( ',',$post->image)[0], 'original' );
 		if(!empty(explode( ',',$post->image)[1]))
